@@ -1,5 +1,7 @@
 from bottle import run, TEMPLATE_PATH, get, static_file, jinja2_view
 
+import configuration as c
+
 
 TEMPLATE_PATH[:] = ["static/templates"]
 
@@ -7,7 +9,7 @@ TEMPLATE_PATH[:] = ["static/templates"]
 @get("/")
 @jinja2_view('index.html')
 def index():
-    return {}
+    return {"team_logo_file": c.TEAM_LOGO_FILE}
 
 
 @get("/static/<filename>")
