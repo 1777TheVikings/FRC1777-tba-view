@@ -2,8 +2,19 @@ from typing import Dict, Any
 import requests
 import json
 import re
+import enum
 
-import constants as c
+import configuration as c
+
+
+class Phases(enum.Enum):
+    NOT_STARTED = 0
+    QUAL = 1
+    ALLIANCE = 2
+    PLAYOFF = 3
+    LOST_IN_QUAL = 4
+    LOST_IN_PLAYOFF = 5
+    WINNER = 6
 
 
 def get_current_phase() -> Dict[str, Any]:
@@ -18,9 +29,19 @@ def get_current_phase() -> Dict[str, Any]:
 
     out = {"cache-time": int(re.search(r"max-age=(\d+)", resp.headers["Cache-Control"]).group(1))}
 
-    if data["qual"]["status"] == "playing":
-        out["phase"] = "qual"
+    if "playoff" in data:
+        if data["playoff"]["status"] == "playing":
+            out["phase"] = Phases.PLAYOFF
+        elif data["playoff"]["status"] == "won":
+            out["phase"] = Phases.WINNER
+        else:
+            out["phase"] = Phases.LOST_IN_PLAYOFF
+    elif "qual" in data:
+        if data["qual"]["status"] == "completed":
+            out["phase"] = Phases.LOST_IN_QUAL
+        else:
+            out["phase"] = Phases.QUAL
     else:
-        out["phase"] = "playoffs"
+        out["phase"] = Phases.NOT_STARTED
 
     return out
